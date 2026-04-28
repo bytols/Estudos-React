@@ -1,5 +1,6 @@
 import React from "react"
 import Icon from "./icon"
+import Text from "./text"
 import {cva, type VariantProps} from "class-variance-authority";
 
 const buttonVariants = cva("flex items-center justify-center cursor-pointer transition rounded-lg group gap-2" , {
@@ -24,11 +25,28 @@ const buttonVariants = cva("flex items-center justify-center cursor-pointer tran
 const buttonIconVariants = cva("transition", {
     variants : {
         variant : {
-            
-        }
-    }
-})
+            primary: "fill-pink-base",
+        },
+        size: {
+            md: "w-5 h-5",
+        },
+    },
+    defaultVariants: {
+        variant: "primary",
+        size: "md",
+    },
+});
 
+const buttonTextVariant = cva("", {
+    variants: {
+        variant: {
+           primary : "text-gray-400"
+        }
+    },
+    defaultVariants : {
+        variant : "primary"
+    }
+});
 interface ButtonProps extends Omit<React.ComponentProps<"button">, "size"  | "disabled">, VariantProps<typeof buttonVariants>  {
     icon?: React.ComponentProps<typeof Icon>["svg"]
 }
@@ -45,10 +63,20 @@ function button({
 }: ButtonProps) 
 {
     return (
-        <button {...props}>
-            {children}
+        <button  className={buttonVariants({variant, size, disabled, className})} {...props}>
+            {IconComponent && (
+                <Icon
+                    svg={IconComponent}
+                    className={buttonIconVariants({variant, size})} 
+                />
+            )}
+            <Text variant= "body-md-bold" className={buttonTextVariant({variant})}>
+                {children}
+            </Text>
         </button>
     )
 }
 
+
+export {buttonIconVariants , buttonTextVariant, buttonVariants}
 export default button
