@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.js"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style type="text/tailwindcss">
+
+        @theme {
+        --text: #EBEBEB;
+        --text-secondary: #6B6B6B;
+        --primary: #462878;
+        --background: #2D2A37;
+    
+        --gradient: 180deg, 
+            rgba(0, 0, 0, 0.05) 0%, 
+            rgba(255, 255, 255, 0.05) 100%;
+    
+        --gradient-hover: 180deg, 
+            rgba(0, 0, 0, 0.1) 0%, 
+            rgba(255, 255, 255, 0.1) 100%;
+    
+        --shadow: 0px 11px 7px 0px rgba(0, 0, 0, 0.01), 
+            0px 7px 7px 0px rgba(0, 0, 0, 0.04), 
+            0px 4px 6px 0px rgba(0, 0, 0, 0.10), 
+            0px 2px 4px 0px rgba(0, 0, 0, 0.26), 
+            0px 0px 2px 0px rgba(0, 0, 0, 0.29), 
+            0px 2px 3px 0px rgba(255, 255, 255, 0.06) inset;
+    
+        --font-sans: 'Rubik', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="text-(--text) font-(--font-sans) bg-linear-(--gradient) min-h-screen">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+
+        const textVariants = {
+            default: 'text-xl',
+            muted: 'text-(--text-secondary) text-xl',
+            heading: 'text-2xl',
+            blast: 'text-3xl',
+        }
+
+        function Text({ as = 'span', variant = 'Default', className, children, ...props }) {
+            return React.createElement(as, { className: `${textVariants[variant]} ${className} `, ...props }, children);
+        }
+
+        const buttonVariants = {
+            default: 'bg-(--background)',
+            primary: 'bg-(--primary)',
+            equal: 'bg-[#7F45E2]'
+        }
+
+        function Button({ variant = 'default', className, children, ...props }) {
+            return (
+                <Text
+                    as="button"
+                    variant='default'
+                    children={children}
+                    className={`flex items-center justify-center rounded-xl
+                                p-3 cursor-pointer text-(--text)
+                                bg-linear-(--gradient)
+                                hover:bg-linear-(--gradient-hover)
+                                shadow-(--shadow)
+                                ${buttonVariants[variant]}
+                                ${className ? className : ''}
+                        `}
+                    {...props}
+                >
+                </Text>
+            )
+        }
+
+        function Card({ children, className, ...props }) {
+            return (
+                <div className={`
+                                bg-(--background) shadow-(--shadow)
+                                rounded-2xl
+                                ${className ? className : ''}
+                                `}
+                    {...props}>
+                    {children}
+                </div>
+            )
+        }
+
+        function OperatorDisplay({ sum, result, history }) {
+
+
+
+
+            return (
+                <div className={`
+                    flex flex-col gap-2 px-[1.375rem]
+                    cursor-default select-none
+                    `}
+                >
+                    <Text as="div" variant="muted" className="flex items-center justify-end h-9">
+                        {history}
+                    </Text>
+                    <div className={`
+                        flex items-center justify-between
+                    `}>
+                        <Text variant="muted">=</Text>
+                        <Text variant="blast">{result ? result : sum}</Text>
+
+                    </div>
+
+                </div>
+            )
+        }
+
+        const buttons = [
+            [
+                { input: "CE" },
+                { input: "C", className: "flex-1 h-16" },
+                { input: "/", variant: "primary" }
+            ],
+            [
+                { input: "7" },
+                { input: "8" },
+                { input: "9" },
+                { input: "*", variant: "primary" }
+            ],
+            [
+                { input: "4" },
+                { input: "5" },
+                { input: "6" },
+                { input: "-", variant: "primary" }
+            ],
+            [
+                { input: "1" },
+                { input: "2" },
+                { input: "3" },
+                { input: "+", variant: "primary" }
+            ],
+            [
+                { input: "0", className: "flex-1 h-16" },
+                { input: "," },
+                { input: "=", variant: "equal" }
+            ],
+
+        ]
+
+        function CalculatorKeyboard({ operation, result, setOperation, setResult, setHistory }) {
+
+            const { saveHistory } = React.useContext(HistoryContext);
+
+            function handleInputClick(input) {
+
+                if (input === "C") {
+                    setOperation("");
+                    setResult("");
+                    setHistory("");
+                    return;
+                }
+
+                if (input === "CE") {
+                    setResult("");
+                    setOperation(operation.slice(0, -2));
+                    return;
+                }
+
+                if (input === "=") {
+                    console.log(operation)
+                    const operationResult = String(eval(operation.replace(/,/g, '.')));
+                    const parsedResult = operationResult.replace(/\./g, ',');
+                    console.log(operationResult);
+                    setResult(parsedResult);
+                    setHistory(operation);
+                    setOperation(parsedResult);
+                    saveHistory(operation);
+                    return;
+                }
+
+                if (result) {
+                    setOperation(isNaN(input) ? `${result}${input === `,` ? `.` : input}` : input);
+                    setResult("");
+                    return;
+                }
+
+                if (input === "," && !operation.endsWith(',')) {
+                    setOperation(`${operation},`);
+                    return;
+                }
+
+                if (!result || result !== "") {
+                    setResult("");
+                }
+
+                setOperation(`${operation}${operation.endsWith(',') ? "" : ""}${input}`);
+                console.log(`${operation}${operation.endsWith(',') ? "" : ""}${input}`);
+            }
+            return (
+                <div className="flex flex-col gap-3">
+                    {buttons.map((row, index) => (
+                        <div key={`row-${index}`} className="flex gap-3">
+                            {row.map(button => (
+                                <Button
+                                    key={button.input}
+                                    className={button.className || "w-16 h-16"}
+                                    variant={button.variant || ""}
+                                    onClick={() => handleInputClick(button.input)}
+                                >
+                                    {button.input}
+                                </Button>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )
+        }
+
+        const HistoryContext = React.createContext();
+
+        function HistoryProvider({ children }) {
+
+            const [savedHistory, setSavedHistory] = React.useState([]);
+
+            function saveHistory(history) {
+                setSavedHistory((prev) => [...prev, history])
+            }
+
+            return (
+                <HistoryContext.Provider value={{ savedHistory, saveHistory }}>
+                    {children}
+                </HistoryContext.Provider>
+            )
+
+        }
+
+        function SecondCard() {
+
+            const { savedHistory } = React.useContext(HistoryContext);
+
+            return (
+                <Card className={`
+                    flex flex-col gap-[1.625rem]
+                    pt-14 px-8 pb-8 py=10 w-full
+                    `}
+                >   <div className="flex flex-col gap-3 w-89">
+                        <Text as="h1" className="mb-4" variant="heading">Histórico de Operacoes</Text>
+                        <ul>
+                            {savedHistory.map((history, index) => (
+                                <Text as="li" variant="default">{history}</Text>
+                            ))}
+                        </ul>
+                    </div>
+                </Card>
+
+            )
+        }
+
+        function Calculator() {
+
+
+            const [operation, setOperation] = React.useState('');
+            const [result, setResult] = React.useState('');
+            const [history, setHistory] = React.useState('');
+
+
+            return (
+                <Card className={`
+                    flex flex-col gap-[1.625rem] w-[22.25rem]
+                    pt-14 px-8 pb-8
+                    `}
+                >
+                    <OperatorDisplay sum={operation} result={result} history={history} />
+                    <CalculatorKeyboard operation={operation} result={result} setOperation={setOperation} setResult={setResult} setHistory={setHistory} />
+
+
+                </Card>
+            )
+        }
+
+        function App() {
+            return (
+                <main className="py-28 px-4 flex 
+                                flex-col 
+                                sm:flex-row
+                                items-center
+                                sm:items-items-stretch
+                                gap-2">
+                    <div className="flex gap-4">
+                        <HistoryProvider>
+                            <Calculator>teste</Calculator>
+                            <SecondCard />
+                        </HistoryProvider>
+                    </div>
+                </main>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+
+</body>
+
+</html>
